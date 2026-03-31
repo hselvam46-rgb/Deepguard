@@ -1,0 +1,1100 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>DeepGuard Pro — AI Deepfake Detector</title>
+<style>
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+:root{
+  --red:#E24B4A;--red-l:#FCEBEB;--red-d:#A32D2D;
+  --green:#639922;--green-l:#EAF3DE;--green-d:#3B6D11;
+  --amber:#EF9F27;--amber-l:#FAEEDA;--amber-d:#854F0B;
+  --blue:#378ADD;--blue-l:#E6F1FB;--blue-d:#185FA5;
+  --bg:#ffffff;--bg2:#f7f6f3;--bg3:#f0efe9;
+  --text:#1a1a18;--text2:#5f5e5a;--text3:#888780;
+  --border:rgba(0,0,0,0.10);--border2:rgba(0,0,0,0.18);
+  --r:12px;--rs:8px;
+}
+@media(prefers-color-scheme:dark){
+  :root{
+    --bg:#1c1c1a;--bg2:#252522;--bg3:#2e2e2b;
+    --text:#f0efe9;--text2:#a8a79f;--text3:#6b6a64;
+    --border:rgba(255,255,255,0.10);--border2:rgba(255,255,255,0.18);
+    --red-l:#3a1414;--green-l:#1a2e08;--amber-l:#2e2008;--blue-l:#0a1e30;
+  }
+}
+body{font-family:'Segoe UI',system-ui,sans-serif;background:var(--bg3);color:var(--text);min-height:100vh;padding:1.5rem 1rem 4rem;line-height:1.6}
+.page{max-width:780px;margin:0 auto}
+
+/* HEADER */
+header{text-align:center;margin-bottom:2rem;animation:fadeUp .5s ease both}
+.logo-row{display:inline-flex;align-items:center;gap:10px;background:var(--bg);border:0.5px solid var(--border2);padding:8px 18px 8px 12px;border-radius:40px;margin-bottom:1rem}
+.logo-icon{width:30px;height:30px;background:var(--red);border-radius:7px;display:flex;align-items:center;justify-content:center}
+.logo-icon svg{width:16px;height:16px;fill:white}
+.logo-name{font-size:16px;font-weight:600;letter-spacing:-.3px}
+.pro-badge{font-size:10px;font-weight:600;background:var(--red);color:white;padding:2px 7px;border-radius:10px;letter-spacing:.5px}
+h1{font-size:26px;font-weight:700;letter-spacing:-.8px;margin-bottom:6px}
+.tagline{font-size:14px;color:var(--text2)}
+
+/* TABS */
+.tabs{display:flex;background:var(--bg);border:0.5px solid var(--border);border-radius:var(--r);padding:5px;gap:4px;margin-bottom:1.25rem;animation:fadeUp .5s .05s ease both;overflow-x:auto}
+.tab{flex:1;min-width:80px;padding:8px 10px;font-size:12px;font-weight:500;font-family:inherit;border:none;background:transparent;border-radius:var(--rs);cursor:pointer;color:var(--text2);transition:background .15s,color .15s;white-space:nowrap;display:flex;align-items:center;justify-content:center;gap:5px}
+.tab.active{background:var(--red);color:white}
+.tab:hover:not(.active){background:var(--bg2);color:var(--text)}
+
+/* PANELS */
+.panel{display:none;animation:fadeUp .3s ease both}
+.panel.active{display:block}
+
+/* CARD */
+.card{background:var(--bg);border:0.5px solid var(--border);border-radius:var(--r);overflow:hidden;margin-bottom:1rem}
+.card-pad{padding:1.25rem}
+.section-title{font-size:11px;color:var(--text3);text-transform:uppercase;letter-spacing:.6px;margin-bottom:12px;font-weight:500}
+
+/* API KEY */
+.api-row{display:flex;gap:8px}
+.api-row input{flex:1;padding:9px 12px;font-size:13px;font-family:inherit;background:var(--bg2);border:0.5px solid var(--border2);border-radius:var(--rs);color:var(--text);outline:none}
+.api-row input:focus{border-color:var(--red)}
+.save-btn{padding:9px 16px;background:var(--red);color:white;border:none;border-radius:var(--rs);cursor:pointer;font-size:13px;font-family:inherit;font-weight:500;white-space:nowrap}
+.key-note{font-size:12px;color:var(--text3);margin-top:6px}
+.key-saved{font-size:12px;color:var(--green-d);margin-top:6px;display:none}
+
+/* MODE TOGGLE */
+.mode-row{display:flex;gap:8px;margin-bottom:1.25rem}
+.mode-btn{flex:1;padding:9px;font-size:12px;font-family:inherit;font-weight:500;border:0.5px solid var(--border2);border-radius:var(--rs);background:var(--bg2);color:var(--text2);cursor:pointer;transition:all .15s;display:flex;align-items:center;justify-content:center;gap:6px}
+.mode-btn.active{background:var(--blue-l);border-color:var(--blue);color:var(--blue-d)}
+.mode-badge{font-size:10px;background:var(--amber-l);color:var(--amber-d);padding:1px 6px;border-radius:8px}
+
+/* DROPZONE */
+.dropzone{border:1.5px dashed var(--border2);border-radius:var(--rs);padding:2rem 1rem;text-align:center;cursor:pointer;background:var(--bg2);transition:all .15s;position:relative}
+.dropzone:hover,.dropzone.drag-over{border-color:var(--red);background:var(--red-l)}
+.dropzone input{position:absolute;inset:0;opacity:0;cursor:pointer;width:100%;height:100%}
+.drop-icon{font-size:28px;margin-bottom:8px}
+.drop-title{font-size:15px;font-weight:500;margin-bottom:3px}
+.drop-sub{font-size:13px;color:var(--text2)}
+.format-pills{display:flex;gap:6px;justify-content:center;margin-top:8px;flex-wrap:wrap}
+.fpill{font-size:11px;background:var(--bg3);border:0.5px solid var(--border);border-radius:10px;padding:2px 10px;color:var(--text2)}
+
+/* PREVIEW */
+.preview-wrap{position:relative;margin-bottom:1rem}
+.preview-img{width:100%;max-height:300px;object-fit:contain;border-radius:var(--rs);border:0.5px solid var(--border);background:var(--bg2);display:block}
+.change-btn{position:absolute;top:8px;right:8px;font-size:11px;padding:4px 10px;background:var(--bg);border:0.5px solid var(--border2);border-radius:20px;cursor:pointer;color:var(--text2);font-family:inherit}
+.file-info-row{display:flex;gap:8px;margin-bottom:1rem;flex-wrap:wrap}
+.file-chip{font-size:12px;background:var(--bg2);border:0.5px solid var(--border);border-radius:8px;padding:4px 10px;color:var(--text2);display:flex;align-items:center;gap:5px}
+
+/* VIDEO PREVIEW */
+.video-preview{width:100%;max-height:280px;border-radius:var(--rs);border:0.5px solid var(--border);display:block;background:#000;margin-bottom:1rem}
+.video-progress{margin-bottom:1rem}
+.vp-label{font-size:12px;color:var(--text2);margin-bottom:6px;display:flex;justify-content:space-between}
+.vp-track{height:6px;background:var(--bg3);border-radius:3px;overflow:hidden}
+.vp-bar{height:100%;background:var(--blue);width:0%;transition:width .3s ease;border-radius:3px}
+
+/* WEBCAM */
+.webcam-box{position:relative;background:#000;border-radius:var(--rs);overflow:hidden;aspect-ratio:4/3;margin-bottom:1rem}
+#webcamVideo{width:100%;height:100%;object-fit:cover;display:block}
+.webcam-overlay{position:absolute;inset:0;display:flex;align-items:flex-end;justify-content:center;padding-bottom:1rem;pointer-events:none}
+.webcam-status{font-size:13px;font-weight:500;padding:6px 16px;border-radius:20px;backdrop-filter:blur(8px)}
+.ws-analyzing{background:rgba(0,0,0,.6);color:white}
+.ws-real{background:rgba(99,153,34,.85);color:white}
+.ws-fake{background:rgba(226,75,74,.85);color:white}
+.ws-idle{background:rgba(0,0,0,.5);color:#ccc}
+.webcam-frame-indicator{position:absolute;top:10px;right:10px;width:60px;height:60px;border:3px solid transparent;border-radius:8px;pointer-events:none}
+.wfi-real{border-color:#639922;box-shadow:0 0 12px rgba(99,153,34,.5)}
+.wfi-fake{border-color:#E24B4A;box-shadow:0 0 12px rgba(226,75,74,.5)}
+
+/* HEATMAP */
+.heatmap-container{position:relative;display:inline-block;width:100%}
+.heatmap-canvas{position:absolute;top:0;left:0;width:100%;height:100%;border-radius:var(--rs);opacity:.65;pointer-events:none}
+.heatmap-legend{display:flex;align-items:center;gap:8px;margin-top:8px;font-size:12px;color:var(--text2)}
+.hm-bar{height:8px;width:120px;border-radius:4px;background:linear-gradient(to right,#3b82f6,#fbbf24,#ef4444)}
+.hm-labels{display:flex;justify-content:space-between;width:120px;font-size:10px;color:var(--text3)}
+
+/* ANALYZE BTN */
+.btn-analyze{width:100%;padding:13px;font-size:15px;font-weight:600;font-family:inherit;background:var(--red);color:white;border:none;border-radius:var(--rs);cursor:pointer;transition:opacity .15s,transform .1s;display:flex;align-items:center;justify-content:center;gap:8px}
+.btn-analyze:hover{opacity:.88}
+.btn-analyze:active{transform:scale(.99)}
+.btn-analyze:disabled{opacity:.4;cursor:not-allowed}
+.spinner{width:16px;height:16px;border:2px solid rgba(255,255,255,.4);border-top-color:white;border-radius:50%;animation:spin .7s linear infinite}
+
+/* LOADING */
+.loading-box{text-align:center;padding:2rem 1rem}
+.ai-ring{width:44px;height:44px;border:3px solid var(--bg3);border-top-color:var(--red);border-radius:50%;animation:spin .75s linear infinite;margin:0 auto 1rem}
+.load-msg{font-size:14px;color:var(--text2)}
+.load-sub{font-size:12px;color:var(--text3);margin-top:4px}
+.progress-dots{display:flex;justify-content:center;gap:6px;margin-top:12px}
+.dot{width:6px;height:6px;border-radius:50%;background:var(--border2);animation:pulse 1.2s ease infinite}
+.dot:nth-child(2){animation-delay:.2s}
+.dot:nth-child(3){animation-delay:.4s}
+
+/* RESULT */
+.result-verdict-banner{padding:1.25rem 1.5rem;display:flex;align-items:center;gap:12px;border-bottom:0.5px solid var(--border)}
+.verdict-icon{width:44px;height:44px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:20px;flex-shrink:0}
+.vi-fake{background:var(--red-l)}
+.vi-real{background:var(--green-l)}
+.vi-unsure{background:var(--amber-l)}
+.verdict-title{font-size:16px;font-weight:600;margin-bottom:2px}
+.verdict-sub{font-size:13px;color:var(--text2)}
+.alert-banner{padding:.75rem 1.5rem;display:flex;align-items:center;gap:10px;font-size:13px;font-weight:500}
+.ab-fake{background:#FCEBEB;color:#A32D2D;border-bottom:0.5px solid #f5c4c4}
+.ab-real{background:#EAF3DE;color:#3B6D11;border-bottom:0.5px solid #c0dd97}
+.ab-unsure{background:#FAEEDA;color:#854F0B;border-bottom:0.5px solid #fac775}
+
+.conf-wrap{padding:1.25rem 1.5rem;border-bottom:0.5px solid var(--border)}
+.conf-header{display:flex;justify-content:space-between;font-size:13px;color:var(--text2);margin-bottom:8px}
+.conf-pct{font-size:24px;font-weight:700;color:var(--text);letter-spacing:-1px}
+.conf-track{height:8px;background:var(--bg3);border-radius:4px;overflow:hidden}
+.conf-fill{height:100%;border-radius:4px;transition:width .9s cubic-bezier(.34,1.56,.64,1)}
+.cf-fake{background:linear-gradient(to right,var(--amber),var(--red))}
+.cf-real{background:linear-gradient(to right,#97C459,var(--green))}
+.cf-unsure{background:var(--amber)}
+
+/* REASONS */
+.reasons-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(200px,1fr));gap:8px;padding:1.25rem 1.5rem;border-bottom:0.5px solid var(--border)}
+.reason-card{background:var(--bg2);border-radius:var(--rs);padding:.75rem;display:flex;align-items:flex-start;gap:8px}
+.rc-icon{font-size:16px;flex-shrink:0;margin-top:1px}
+.rc-label{font-size:12px;font-weight:600;color:var(--text);margin-bottom:2px}
+.rc-val{font-size:11px;color:var(--text2)}
+.rc-bar{height:3px;background:var(--bg3);border-radius:2px;margin-top:5px;overflow:hidden}
+.rc-fill{height:100%;border-radius:2px}
+
+/* SIGNALS */
+.signals-wrap{padding:1.25rem 1.5rem;border-bottom:0.5px solid var(--border)}
+.sig-item{display:flex;align-items:flex-start;gap:10px;margin-bottom:9px}
+.sig-dot{width:8px;height:8px;border-radius:50%;margin-top:4px;flex-shrink:0}
+.sd-bad{background:var(--red)}
+.sd-ok{background:var(--green)}
+.sd-warn{background:var(--amber)}
+.sig-text{font-size:13px;color:var(--text2);line-height:1.5}
+
+/* SUMMARY */
+.summary-wrap{padding:1.25rem 1.5rem;border-bottom:0.5px solid var(--border)}
+.summary-text{font-size:14px;color:var(--text2);line-height:1.7}
+
+/* HEATMAP SECTION */
+.heatmap-section{padding:1.25rem 1.5rem;border-bottom:0.5px solid var(--border)}
+
+/* ACTION BUTTONS */
+.action-row{padding:1.25rem 1.5rem;display:flex;gap:8px;flex-wrap:wrap}
+.btn-sec{flex:1;min-width:120px;padding:10px;font-size:13px;font-family:inherit;background:var(--bg2);border:0.5px solid var(--border2);border-radius:var(--rs);cursor:pointer;color:var(--text2);transition:all .15s}
+.btn-sec:hover{background:var(--bg3);color:var(--text)}
+
+/* HISTORY */
+.history-empty{text-align:center;padding:2.5rem;color:var(--text3);font-size:14px}
+.history-list{display:flex;flex-direction:column;gap:0}
+.history-item{display:flex;align-items:center;gap:12px;padding:12px 1.25rem;border-bottom:0.5px solid var(--border);transition:background .15s;cursor:pointer}
+.history-item:hover{background:var(--bg2)}
+.history-item:last-child{border-bottom:none}
+.hi-thumb{width:44px;height:44px;border-radius:var(--rs);object-fit:cover;background:var(--bg3);flex-shrink:0;border:0.5px solid var(--border)}
+.hi-info{flex:1;min-width:0}
+.hi-name{font-size:13px;font-weight:500;color:var(--text);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;margin-bottom:2px}
+.hi-meta{font-size:11px;color:var(--text3)}
+.hi-badge{font-size:11px;font-weight:500;padding:3px 10px;border-radius:10px;flex-shrink:0}
+.hib-fake{background:var(--red-l);color:var(--red-d)}
+.hib-real{background:var(--green-l);color:var(--green-d)}
+.hib-unsure{background:var(--amber-l);color:var(--amber-d)}
+.history-controls{display:flex;justify-content:space-between;align-items:center;padding:.75rem 1.25rem;border-bottom:0.5px solid var(--border)}
+.hc-count{font-size:12px;color:var(--text3)}
+.clear-btn{font-size:12px;color:var(--red-d);background:none;border:none;cursor:pointer;font-family:inherit;padding:4px 8px;border-radius:4px}
+.clear-btn:hover{background:var(--red-l)}
+
+/* API DOCS */
+.api-endpoint{background:var(--bg3);border:0.5px solid var(--border);border-radius:var(--rs);padding:1rem;margin-bottom:.75rem;font-family:'Courier New',monospace;font-size:13px}
+.api-method{font-size:11px;font-weight:700;padding:2px 8px;border-radius:4px;margin-right:8px}
+.am-post{background:#dbeafe;color:#1e40af}
+.api-path{color:var(--text)}
+.api-body{font-size:12px;color:var(--text2);margin-top:8px;white-space:pre-wrap;line-height:1.6}
+.api-copy-btn{font-size:11px;padding:4px 10px;background:var(--bg);border:0.5px solid var(--border2);border-radius:6px;cursor:pointer;font-family:inherit;color:var(--text2);margin-top:8px}
+
+/* STATS ROW */
+.stats-row{display:grid;grid-template-columns:repeat(3,1fr);gap:8px;margin-bottom:1rem}
+.stat-box{background:var(--bg);border:0.5px solid var(--border);border-radius:var(--rs);padding:.75rem;text-align:center}
+.stat-num{font-size:22px;font-weight:700;letter-spacing:-1px;color:var(--text)}
+.stat-label{font-size:11px;color:var(--text3);margin-top:2px}
+
+/* WEBCAM CONTROLS */
+.webcam-controls{display:flex;gap:8px;margin-bottom:1rem}
+.btn-webcam{flex:1;padding:10px;font-size:13px;font-family:inherit;font-weight:500;border:0.5px solid var(--border2);border-radius:var(--rs);cursor:pointer;transition:all .15s;display:flex;align-items:center;justify-content:center;gap:6px}
+.btn-start{background:var(--green-l);border-color:var(--green);color:var(--green-d)}
+.btn-start:hover{background:var(--green);color:white}
+.btn-stop{background:var(--red-l);border-color:var(--red);color:var(--red-d)}
+.btn-stop:hover{background:var(--red);color:white}
+.btn-scan{background:var(--blue-l);border-color:var(--blue);color:var(--blue-d)}
+.btn-scan:hover{background:var(--blue);color:white}
+
+/* FOOTER */
+footer{text-align:center;margin-top:1.5rem;font-size:12px;color:var(--text3);line-height:1.7;animation:fadeUp .5s .3s ease both}
+
+@keyframes spin{to{transform:rotate(360deg)}}
+@keyframes fadeUp{from{opacity:0;transform:translateY(8px)}to{opacity:1;transform:translateY(0)}}
+@keyframes pulse{0%,100%{opacity:.3}50%{opacity:1}}
+</style>
+</head>
+<body>
+<div class="page">
+
+<header>
+  <div class="logo-row">
+    <div class="logo-icon">
+      <svg viewBox="0 0 24 24"><path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm-1 14H9V8h2v8zm4 0h-2V8h2v8z"/></svg>
+    </div>
+    <span class="logo-name">DeepGuard</span>
+    <span class="pro-badge">PRO</span>
+  </div>
+  <h1>AI Deepfake Detector</h1>
+  <p class="tagline">Image · Video · Webcam · Heatmap · History · API — all in one tool</p>
+</header>
+
+<!-- STATS -->
+<div class="stats-row" id="statsRow">
+  <div class="stat-box"><div class="stat-num" id="statTotal">0</div><div class="stat-label">Total scans</div></div>
+  <div class="stat-box"><div class="stat-num" id="statFake">0</div><div class="stat-label">Fakes caught</div></div>
+  <div class="stat-box"><div class="stat-num" id="statReal">0</div><div class="stat-label">Verified real</div></div>
+</div>
+
+<!-- API KEY -->
+<div class="card" style="animation:fadeUp .5s ease both">
+  <div class="card-pad" style="padding-bottom:1rem">
+    <div class="section-title">Anthropic API Key</div>
+    <div class="api-row">
+      <input type="password" id="apiKeyInput" placeholder="sk-ant-api03-...">
+      <button class="save-btn" onclick="saveKey()">Save</button>
+    </div>
+    <div class="key-note">Get free key at <a href="https://console.anthropic.com" target="_blank" style="color:var(--blue-d)">console.anthropic.com</a> · Stored in your browser only</div>
+    <div class="key-saved" id="keySaved">✓ API key saved and ready</div>
+  </div>
+</div>
+
+<!-- TABS -->
+<div class="tabs" id="tabs">
+  <button class="tab active" onclick="switchTab('image')">🖼 Image</button>
+  <button class="tab" onclick="switchTab('video')">🎬 Video</button>
+  <button class="tab" onclick="switchTab('webcam')">📷 Webcam</button>
+  <button class="tab" onclick="switchTab('history')">📋 History</button>
+  <button class="tab" onclick="switchTab('api')">⚡ API</button>
+</div>
+
+<!-- IMAGE PANEL -->
+<div class="panel active" id="panel-image">
+  <div class="card">
+    <div class="card-pad">
+      <div class="section-title">Detection Mode</div>
+      <div class="mode-row">
+        <button class="mode-btn active" id="mode-standard" onclick="setMode('standard')">⚡ Standard <span class="mode-badge">Balanced</span></button>
+        <button class="mode-btn" id="mode-fast" onclick="setMode('fast')">🚀 Lightweight <span class="mode-badge">Fast Demo</span></button>
+        <button class="mode-btn" id="mode-deep" onclick="setMode('deep')">🔬 Deep Scan <span class="mode-badge">Accurate</span></button>
+      </div>
+
+      <div id="img-upload-section">
+        <div class="dropzone" id="imgDropzone">
+          <input type="file" id="imgFileInput" accept="image/jpeg,image/png,image/webp,image/gif">
+          <div class="drop-icon">🖼️</div>
+          <div class="drop-title">Drop an image or click to browse</div>
+          <div class="drop-sub">Face photos work best for deepfake detection</div>
+          <div class="format-pills">
+            <span class="fpill">JPG</span><span class="fpill">PNG</span><span class="fpill">WEBP</span>
+          </div>
+        </div>
+      </div>
+
+      <div id="img-preview-section" style="display:none">
+        <div class="preview-wrap">
+          <img id="imgPreview" class="preview-img" alt="Preview">
+          <button class="change-btn" onclick="resetImg()">change</button>
+        </div>
+        <div class="file-info-row" id="imgFileInfo"></div>
+        <button class="btn-analyze" id="imgAnalyzeBtn" onclick="analyzeImage()">
+          <span id="imgBtnText">Analyze Image</span>
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <div id="img-loading" style="display:none">
+    <div class="card"><div class="card-pad">
+      <div class="loading-box">
+        <div class="ai-ring"></div>
+        <div class="load-msg" id="imgLoadMsg">Extracting facial regions...</div>
+        <div class="load-sub">Running detection across all signals</div>
+        <div class="progress-dots"><div class="dot"></div><div class="dot"></div><div class="dot"></div></div>
+      </div>
+    </div></div>
+  </div>
+
+  <div id="img-result" style="display:none"></div>
+</div>
+
+<!-- VIDEO PANEL -->
+<div class="panel" id="panel-video">
+  <div class="card">
+    <div class="card-pad">
+      <div id="vid-upload-section">
+        <div class="dropzone" id="vidDropzone">
+          <input type="file" id="vidFileInput" accept="video/mp4,video/webm,video/ogg">
+          <div class="drop-icon">🎬</div>
+          <div class="drop-title">Drop a video or click to browse</div>
+          <div class="drop-sub">Frames are extracted and analyzed individually</div>
+          <div class="format-pills"><span class="fpill">MP4</span><span class="fpill">WEBM</span></div>
+        </div>
+      </div>
+      <div id="vid-preview-section" style="display:none">
+        <video id="vidPreview" class="video-preview" controls></video>
+        <div class="file-info-row" id="vidFileInfo"></div>
+        <div class="video-progress" id="vidProgress" style="display:none">
+          <div class="vp-label"><span id="vpLabel">Extracting frames...</span><span id="vpPct">0%</span></div>
+          <div class="vp-track"><div class="vp-bar" id="vpBar"></div></div>
+        </div>
+        <button class="btn-analyze" id="vidAnalyzeBtn" onclick="analyzeVideo()">
+          <span id="vidBtnText">Analyze Video</span>
+        </button>
+      </div>
+    </div>
+  </div>
+  <div id="vid-result" style="display:none"></div>
+</div>
+
+<!-- WEBCAM PANEL -->
+<div class="panel" id="panel-webcam">
+  <div class="card">
+    <div class="card-pad">
+      <div class="webcam-controls">
+        <button class="btn-webcam btn-start" id="startCamBtn" onclick="startWebcam()">▶ Start Camera</button>
+        <button class="btn-webcam btn-stop" id="stopCamBtn" onclick="stopWebcam()" style="display:none">■ Stop</button>
+        <button class="btn-webcam btn-scan" id="scanBtn" onclick="scanWebcam()" style="display:none">🔍 Scan Frame</button>
+      </div>
+      <div class="webcam-box">
+        <video id="webcamVideo" autoplay playsinline muted></video>
+        <canvas id="webcamCanvas" style="display:none"></canvas>
+        <div class="webcam-frame-indicator" id="webcamIndicator"></div>
+        <div class="webcam-overlay">
+          <div class="webcam-status ws-idle" id="webcamStatus">Camera off</div>
+        </div>
+      </div>
+      <div id="webcam-result"></div>
+    </div>
+  </div>
+</div>
+
+<!-- HISTORY PANEL -->
+<div class="panel" id="panel-history">
+  <div class="card" id="historyCard">
+    <div class="history-empty" id="historyEmpty">No scans yet. Analyze an image or video to see history.</div>
+    <div id="historyList" style="display:none">
+      <div class="history-controls">
+        <span class="hc-count" id="histCount"></span>
+        <button class="clear-btn" onclick="clearHistory()">Clear all</button>
+      </div>
+      <div id="historyItems"></div>
+    </div>
+  </div>
+</div>
+
+<!-- API PANEL -->
+<div class="panel" id="panel-api">
+  <div class="card">
+    <div class="card-pad">
+      <div class="section-title">API Integration</div>
+      <p style="font-size:13px;color:var(--text2);margin-bottom:1rem;line-height:1.6">DeepGuard can be called by other apps. Use the endpoint below to send images and receive detection results programmatically.</p>
+
+      <div class="api-endpoint">
+        <span class="api-method am-post">POST</span><span class="api-path">https://api.anthropic.com/v1/messages</span>
+        <div class="api-body">Headers:
+  x-api-key: YOUR_API_KEY
+  anthropic-version: 2023-06-01
+  Content-Type: application/json
+
+Body:
+{
+  "model": "claude-sonnet-4-20250514",
+  "max_tokens": 1000,
+  "messages": [{
+    "role": "user",
+    "content": [
+      { "type": "image", "source": {
+          "type": "base64",
+          "media_type": "image/jpeg",
+          "data": "BASE64_IMAGE_HERE"
+      }},
+      { "type": "text",
+        "text": "Is this a deepfake? Return JSON: {verdict, confidence, signals}"
+      }
+    ]
+  }]
+}</div>
+        <button class="api-copy-btn" onclick="copyApiCode()">Copy code</button>
+      </div>
+
+      <div class="section-title" style="margin-top:1rem">Sample Response</div>
+      <div class="api-endpoint">
+        <div class="api-body">{
+  "verdict": "FAKE",
+  "confidence": 87,
+  "summary": "Multiple GAN artifacts detected...",
+  "signals": [
+    { "type": "bad", "text": "Unnatural skin texture around jaw" },
+    { "type": "bad", "text": "Eye reflection inconsistency" },
+    { "type": "warn", "text": "Hair strand blending artifacts" },
+    { "type": "ok",  "text": "Lighting appears consistent" }
+  ]
+}</div>
+      </div>
+
+      <div class="section-title" style="margin-top:1rem">Live API Test</div>
+      <p style="font-size:13px;color:var(--text2);margin-bottom:.75rem">Test the API directly with a sample image URL</p>
+      <div style="display:flex;gap:8px;margin-bottom:.75rem">
+        <input id="apiTestUrl" type="text" placeholder="Paste image URL to test..." style="flex:1;padding:9px 12px;font-size:13px;font-family:inherit;background:var(--bg2);border:0.5px solid var(--border2);border-radius:var(--rs);color:var(--text);outline:none">
+        <button onclick="testApi()" style="padding:9px 16px;background:var(--blue);color:white;border:none;border-radius:var(--rs);cursor:pointer;font-size:13px;font-family:inherit;font-weight:500;white-space:nowrap">Test API</button>
+      </div>
+      <div id="apiTestResult"></div>
+    </div>
+  </div>
+</div>
+
+<footer>
+  DeepGuard Pro · Built with Claude AI · For demonstration and educational use<br>
+  Results are indicative — always verify high-stakes decisions independently
+</footer>
+</div>
+
+<script>
+// ─── STATE ───────────────────────────────────────────────────
+let imgBase64 = null, imgMime = 'image/jpeg', imgFileName = '';
+let vidFile = null;
+let webcamStream = null;
+let detectionMode = 'standard';
+let history = JSON.parse(localStorage.getItem('dg_history') || '[]');
+let stats = JSON.parse(localStorage.getItem('dg_stats') || '{"total":0,"fake":0,"real":0}');
+
+// ─── API KEY ─────────────────────────────────────────────────
+function saveKey() {
+  const k = document.getElementById('apiKeyInput').value.trim();
+  if (!k.startsWith('sk-')) { alert('Please enter a valid Anthropic API key.'); return; }
+  localStorage.setItem('dg_key', k);
+  const s = document.getElementById('keySaved');
+  s.style.display = 'block';
+  setTimeout(() => s.style.display = 'none', 3000);
+}
+window.addEventListener('load', () => {
+  const k = localStorage.getItem('dg_key');
+  if (k) { document.getElementById('apiKeyInput').value = k; document.getElementById('keySaved').style.display = 'block'; }
+  updateStats(); renderHistory();
+});
+function getKey() { return localStorage.getItem('dg_key') || document.getElementById('apiKeyInput').value.trim(); }
+
+// ─── TABS ─────────────────────────────────────────────────────
+function switchTab(name) {
+  document.querySelectorAll('.tab').forEach((t,i) => {
+    const names = ['image','video','webcam','history','api'];
+    t.classList.toggle('active', names[i] === name);
+  });
+  document.querySelectorAll('.panel').forEach(p => p.classList.remove('active'));
+  document.getElementById('panel-'+name).classList.add('active');
+  if (name === 'history') renderHistory();
+}
+
+// ─── DETECTION MODE ───────────────────────────────────────────
+function setMode(m) {
+  detectionMode = m;
+  ['standard','fast','deep'].forEach(x => document.getElementById('mode-'+x).classList.toggle('active', x===m));
+}
+
+// ─── IMAGE UPLOAD ─────────────────────────────────────────────
+const imgDrop = document.getElementById('imgDropzone');
+const imgInput = document.getElementById('imgFileInput');
+imgDrop.addEventListener('dragover', e => { e.preventDefault(); imgDrop.classList.add('drag-over'); });
+imgDrop.addEventListener('dragleave', () => imgDrop.classList.remove('drag-over'));
+imgDrop.addEventListener('drop', e => { e.preventDefault(); imgDrop.classList.remove('drag-over'); if (e.dataTransfer.files[0]) handleImgFile(e.dataTransfer.files[0]); });
+imgInput.addEventListener('change', () => { if (imgInput.files[0]) handleImgFile(imgInput.files[0]); });
+
+function handleImgFile(file) {
+  imgMime = file.type; imgFileName = file.name;
+  const reader = new FileReader();
+  reader.onload = e => {
+    imgBase64 = e.target.result.split(',')[1];
+    document.getElementById('imgPreview').src = e.target.result;
+    const sz = (file.size/1024).toFixed(0);
+    document.getElementById('imgFileInfo').innerHTML =
+      `<div class="file-chip">📄 ${file.name}</div><div class="file-chip">📦 ${sz} KB</div><div class="file-chip">🖼 ${file.type.split('/')[1].toUpperCase()}</div>`;
+    document.getElementById('img-upload-section').style.display = 'none';
+    document.getElementById('img-preview-section').style.display = 'block';
+    document.getElementById('img-result').style.display = 'none';
+    document.getElementById('img-result').innerHTML = '';
+  };
+  reader.readAsDataURL(file);
+}
+
+function resetImg() {
+  imgBase64 = null;
+  document.getElementById('img-upload-section').style.display = 'block';
+  document.getElementById('img-preview-section').style.display = 'none';
+  document.getElementById('img-result').style.display = 'none';
+  document.getElementById('img-result').innerHTML = '';
+  imgInput.value = '';
+}
+
+// ─── IMAGE ANALYZE ────────────────────────────────────────────
+const IMG_MSGS = ['Detecting facial landmarks...','Analyzing skin texture...','Checking eye/teeth patterns...','Scanning GAN artifacts...','Evaluating lighting...','Identifying manipulation zones...','Generating verdict...'];
+
+async function analyzeImage() {
+  const key = getKey();
+  if (!key) { alert('Please save your Anthropic API key first.'); return; }
+  if (!imgBase64) return;
+
+  document.getElementById('img-preview-section').style.display = 'none';
+  document.getElementById('img-loading').style.display = 'block';
+  document.getElementById('img-result').style.display = 'none';
+
+  let mi = 0;
+  const loadEl = document.getElementById('imgLoadMsg');
+  loadEl.textContent = IMG_MSGS[0];
+  const iv = setInterval(() => { mi = Math.min(mi+1, IMG_MSGS.length-1); loadEl.textContent = IMG_MSGS[mi]; }, 950);
+
+  const modePrompt = detectionMode === 'fast'
+    ? 'Perform a QUICK check — prioritize speed, give top 2 signals only.'
+    : detectionMode === 'deep'
+    ? 'Perform an EXHAUSTIVE deep analysis — check every artifact type meticulously, give 6 signals.'
+    : 'Perform a STANDARD balanced analysis — give 4 signals.';
+
+  try {
+    const res = await callAPI(key, [{
+      role: 'user',
+      content: [
+        { type: 'image', source: { type: 'base64', media_type: imgMime, data: imgBase64 } },
+        { type: 'text', text: `You are a deepfake detection expert. ${modePrompt}
+
+Analyze for: skin texture anomalies, eye reflection/clarity, hair naturalness, background edge blending, teeth/ear geometry, GAN compression artifacts, lighting consistency, facial symmetry, lip-sync-style distortions, face boundary blending.
+
+For FAKE images, identify which of these specific issues are present:
+- face_distortion (unnatural face shape/proportions)
+- lighting_mismatch (inconsistent light sources on face)
+- skin_artifact (unnatural smoothing or texture)
+- eye_anomaly (fake reflections, asymmetry, blurriness)
+- hair_artifact (unnatural strands or blending)
+- edge_blending (face doesn't blend naturally with background)
+
+Return ONLY valid JSON, no markdown:
+{
+  "verdict": "FAKE"|"REAL"|"UNCERTAIN",
+  "confidence": <0-100>,
+  "summary": "<2 sentence assessment>",
+  "reasons": {
+    "face_distortion": <0-100>,
+    "lighting_mismatch": <0-100>,
+    "skin_artifact": <0-100>,
+    "eye_anomaly": <0-100>,
+    "hair_artifact": <0-100>,
+    "edge_blending": <0-100>
+  },
+  "signals": [
+    {"type":"bad"|"ok"|"warn","text":"<specific finding>"},
+    {"type":"bad"|"ok"|"warn","text":"<specific finding>"},
+    {"type":"bad"|"ok"|"warn","text":"<specific finding>"},
+    {"type":"bad"|"ok"|"warn","text":"<specific finding>"}
+  ],
+  "heatmap_regions": [
+    {"label":"<region name>","severity":"high"|"medium"|"low","x":<0-100>,"y":<0-100>,"w":<5-40>,"h":<5-40>}
+  ]
+}` }
+      ]
+    }]);
+
+    clearInterval(iv);
+    document.getElementById('img-loading').style.display = 'none';
+
+    const result = parseJSON(res);
+    if (result) {
+      addHistory({ type: 'image', name: imgFileName, result, thumb: 'data:'+imgMime+';base64,'+imgBase64, date: new Date().toISOString() });
+      updateStats(result.verdict);
+      showImgResult(result);
+    } else {
+      document.getElementById('img-preview-section').style.display = 'block';
+      showError('img-result', 'Could not parse response. Try again.');
+    }
+  } catch(e) {
+    clearInterval(iv);
+    document.getElementById('img-loading').style.display = 'none';
+    document.getElementById('img-preview-section').style.display = 'block';
+    showError('img-result', 'API Error: ' + e.message);
+  }
+}
+
+function showImgResult(r) {
+  const el = document.getElementById('img-result');
+  el.innerHTML = buildResultHTML(r, true);
+  el.style.display = 'block';
+
+  setTimeout(() => {
+    const bar = document.getElementById('mainConfBar');
+    if (bar) bar.style.width = Math.min(100, r.confidence||50) + '%';
+    drawHeatmap(r);
+  }, 150);
+}
+
+function buildResultHTML(r, withHeatmap=false) {
+  const v = r.verdict || 'UNCERTAIN';
+  const conf = Math.min(100, Math.max(0, parseInt(r.confidence)||50));
+  const vIcon = v==='FAKE' ? '🔴' : v==='REAL' ? '🟢' : '🟡';
+  const vLabel = v==='FAKE' ? 'Likely AI-generated / Deepfake' : v==='REAL' ? 'Likely authentic image' : 'Uncertain — needs review';
+  const viClass = v==='FAKE'?'vi-fake':v==='REAL'?'vi-real':'vi-unsure';
+  const abClass = v==='FAKE'?'ab-fake':v==='REAL'?'ab-real':'ab-unsure';
+  const cfClass = v==='FAKE'?'cf-fake':v==='REAL'?'cf-real':'cf-unsure';
+  const alertMsg = v==='FAKE' ? '🔴 Warning: This content appears to be AI-generated or manipulated!' : v==='REAL' ? '🟢 This content appears to be authentic.' : '🟡 Detection is uncertain. Manual review recommended.';
+
+  let reasonsHtml = '';
+  if (r.reasons) {
+    const icons = { face_distortion:'😶', lighting_mismatch:'💡', skin_artifact:'🧬', eye_anomaly:'👁', hair_artifact:'💇', edge_blending:'🔲' };
+    const labels = { face_distortion:'Face distortion', lighting_mismatch:'Lighting mismatch', skin_artifact:'Skin artifact', eye_anomaly:'Eye anomaly', hair_artifact:'Hair artifact', edge_blending:'Edge blending' };
+    reasonsHtml = `<div class="reasons-grid">` + Object.entries(r.reasons).map(([k,val]) => {
+      const pct = Math.min(100, Math.max(0, parseInt(val)||0));
+      const col = pct > 60 ? 'var(--red)' : pct > 30 ? 'var(--amber)' : 'var(--green)';
+      const label = pct > 60 ? 'High risk' : pct > 30 ? 'Moderate' : 'Normal';
+      return `<div class="reason-card"><div class="rc-icon">${icons[k]||'🔍'}</div><div style="flex:1"><div class="rc-label">${labels[k]||k}</div><div class="rc-val">${label} (${pct}%)</div><div class="rc-bar"><div class="rc-fill" style="width:${pct}%;background:${col}"></div></div></div></div>`;
+    }).join('') + '</div>';
+  }
+
+  const sigsHtml = (r.signals||[]).map(s => {
+    const dc = s.type==='bad'?'sd-bad':s.type==='ok'?'sd-ok':'sd-warn';
+    return `<div class="sig-item"><div class="sig-dot ${dc}"></div><div class="sig-text">${s.text}</div></div>`;
+  }).join('');
+
+  const heatmapHtml = withHeatmap ? `
+    <div class="heatmap-section">
+      <div class="section-title">Heatmap Visualization</div>
+      <div class="heatmap-container" id="heatmapContainer">
+        <img id="heatmapBase" class="preview-img" src="${document.getElementById('imgPreview').src}" alt="Analysis">
+        <canvas id="heatmapCanvas" class="heatmap-canvas"></canvas>
+      </div>
+      <div class="heatmap-legend">
+        <span style="font-size:12px;color:var(--text2)">Manipulation likelihood:</span>
+        <div><div class="hm-bar"></div><div class="hm-labels"><span>Low</span><span>High</span></div></div>
+      </div>
+    </div>` : '';
+
+  return `<div class="card">
+    <div class="alert-banner ${abClass}">${alertMsg}</div>
+    <div class="result-verdict-banner">
+      <div class="verdict-icon ${viClass}">${vIcon}</div>
+      <div>
+        <div class="verdict-title">${vLabel}</div>
+        <div class="verdict-sub">Detection mode: ${detectionMode.charAt(0).toUpperCase()+detectionMode.slice(1)}</div>
+      </div>
+    </div>
+    <div class="conf-wrap">
+      <div class="conf-header"><span style="font-size:13px;color:var(--text2)">Confidence score</span><span class="conf-pct">${conf}%</span></div>
+      <div class="conf-track"><div class="conf-fill ${cfClass}" id="mainConfBar" style="width:0%"></div></div>
+    </div>
+    ${reasonsHtml ? `<div style="border-bottom:0.5px solid var(--border)"><div style="padding:.75rem 1.5rem .25rem"><div class="section-title">Fake reason detection</div></div>${reasonsHtml}</div>` : ''}
+    ${sigsHtml ? `<div class="signals-wrap"><div class="section-title">Analysis signals</div>${sigsHtml}</div>` : ''}
+    ${heatmapHtml}
+    ${r.summary ? `<div class="summary-wrap"><div class="summary-text">${r.summary}</div></div>` : ''}
+    <div class="action-row">
+      <button class="btn-sec" onclick="resetImg();document.getElementById('img-result').style.display='none'">New scan</button>
+      <button class="btn-sec" onclick="switchTab('history')">View history</button>
+      <button class="btn-sec" onclick="exportResult()">Export result</button>
+    </div>
+  </div>`;
+}
+
+// ─── HEATMAP ──────────────────────────────────────────────────
+function drawHeatmap(r) {
+  const img = document.getElementById('heatmapBase');
+  const canvas = document.getElementById('heatmapCanvas');
+  if (!img || !canvas) return;
+
+  const draw = () => {
+    canvas.width = img.offsetWidth;
+    canvas.height = img.offsetHeight;
+    const ctx = canvas.getContext('2d');
+    ctx.clearRect(0, 0, canvas.width, canvas.height);
+
+    const regions = r.heatmap_regions || generateDefaultRegions(r);
+    regions.forEach(reg => {
+      const x = (reg.x/100)*canvas.width;
+      const y = (reg.y/100)*canvas.height;
+      const w = (reg.w/100)*canvas.width;
+      const h = (reg.h/100)*canvas.height;
+      const sev = reg.severity || 'medium';
+      const col = sev==='high'?'rgba(226,75,74,':'sev==="medium"?'rgba(239,159,39,':'rgba(99,153,34,';
+
+      const grad = ctx.createRadialGradient(x+w/2,y+h/2,0,x+w/2,y+h/2,Math.max(w,h)/1.5);
+      grad.addColorStop(0, col+'0.65)');
+      grad.addColorStop(1, col+'0)');
+      ctx.fillStyle = grad;
+      ctx.beginPath();
+      ctx.ellipse(x+w/2, y+h/2, w/1.5, h/1.5, 0, 0, Math.PI*2);
+      ctx.fill();
+
+      ctx.font = `bold ${Math.max(9,Math.min(13,w/6))}px system-ui`;
+      ctx.fillStyle = sev==='high'?'rgba(163,45,45,.9)':'rgba(133,79,11,.9)';
+      ctx.fillText(reg.label||'', x+w/2-ctx.measureText(reg.label||'').width/2, y+h+14);
+    });
+  };
+
+  if (img.complete) draw(); else img.onload = draw;
+}
+
+function generateDefaultRegions(r) {
+  const regions = [];
+  if (!r.reasons) return regions;
+  if (r.reasons.face_distortion > 30) regions.push({label:'Face',severity:r.reasons.face_distortion>60?'high':'medium',x:30,y:15,w:40,h:50});
+  if (r.reasons.eye_anomaly > 30) regions.push({label:'Eyes',severity:r.reasons.eye_anomaly>60?'high':'medium',x:28,y:22,w:44,h:18});
+  if (r.reasons.hair_artifact > 30) regions.push({label:'Hair',severity:'medium',x:25,y:5,w:50,h:25});
+  if (r.reasons.edge_blending > 30) regions.push({label:'Edge',severity:'medium',x:15,y:10,w:15,h:60});
+  if (r.reasons.skin_artifact > 30) regions.push({label:'Skin',severity:r.reasons.skin_artifact>60?'high':'medium',x:35,y:35,w:30,h:30});
+  return regions;
+}
+
+// ─── VIDEO ANALYSIS ───────────────────────────────────────────
+const vidDrop = document.getElementById('vidDropzone');
+const vidInput = document.getElementById('vidFileInput');
+vidDrop.addEventListener('dragover', e => { e.preventDefault(); vidDrop.classList.add('drag-over'); });
+vidDrop.addEventListener('dragleave', () => vidDrop.classList.remove('drag-over'));
+vidDrop.addEventListener('drop', e => { e.preventDefault(); vidDrop.classList.remove('drag-over'); if (e.dataTransfer.files[0]) handleVidFile(e.dataTransfer.files[0]); });
+vidInput.addEventListener('change', () => { if (vidInput.files[0]) handleVidFile(vidInput.files[0]); });
+
+function handleVidFile(file) {
+  vidFile = file;
+  const url = URL.createObjectURL(file);
+  const vEl = document.getElementById('vidPreview');
+  vEl.src = url;
+  const sz = (file.size/1024/1024).toFixed(1);
+  document.getElementById('vidFileInfo').innerHTML = `<div class="file-chip">🎬 ${file.name}</div><div class="file-chip">📦 ${sz} MB</div><div class="file-chip">🎥 ${file.type.split('/')[1].toUpperCase()}</div>`;
+  document.getElementById('vid-upload-section').style.display = 'none';
+  document.getElementById('vid-preview-section').style.display = 'block';
+  document.getElementById('vid-result').style.display = 'none';
+}
+
+async function analyzeVideo() {
+  const key = getKey();
+  if (!key) { alert('Please save your Anthropic API key first.'); return; }
+  if (!vidFile) return;
+
+  const btn = document.getElementById('vidAnalyzeBtn');
+  const btnText = document.getElementById('vidBtnText');
+  btn.disabled = true;
+  btnText.textContent = 'Extracting frames...';
+
+  const vEl = document.getElementById('vidPreview');
+  const canvas = document.createElement('canvas');
+  const numFrames = 5;
+  const frames = [];
+
+  document.getElementById('vidProgress').style.display = 'block';
+
+  await new Promise(res => {
+    vEl.addEventListener('loadedmetadata', async () => {
+      const dur = vEl.duration;
+      canvas.width = 320; canvas.height = 240;
+      const ctx = canvas.getContext('2d');
+      for (let i = 0; i < numFrames; i++) {
+        const t = (dur / (numFrames + 1)) * (i + 1);
+        await seekVideo(vEl, t);
+        ctx.drawImage(vEl, 0, 0, 320, 240);
+        frames.push(canvas.toDataURL('image/jpeg', 0.8).split(',')[1]);
+        const pct = Math.round(((i+1)/numFrames)*50);
+        document.getElementById('vpBar').style.width = pct+'%';
+        document.getElementById('vpPct').textContent = pct+'%';
+        document.getElementById('vpLabel').textContent = `Analyzing frame ${i+1}/${numFrames}...`;
+      }
+      res();
+    }, { once: true });
+    vEl.load();
+  });
+
+  try {
+    btnText.textContent = 'Running AI analysis...';
+    const content = [];
+    frames.slice(0,3).forEach((f,i) => {
+      content.push({ type:'image', source:{ type:'base64', media_type:'image/jpeg', data:f } });
+      content.push({ type:'text', text:`Frame ${i+1}:` });
+    });
+    content.push({ type:'text', text:`Analyze these ${Math.min(3,frames.length)} video frames for deepfake manipulation. Consider temporal consistency (do artifacts appear consistently across frames?). Return JSON: {"verdict":"FAKE"|"REAL"|"UNCERTAIN","confidence":0-100,"summary":"<2 sentences>","frame_results":[{"frame":1,"verdict":"FAKE"|"REAL","confidence":0-100}],"signals":[{"type":"bad"|"ok"|"warn","text":"<finding>"}],"reasons":{"face_distortion":0-100,"lighting_mismatch":0-100,"skin_artifact":0-100,"eye_anomaly":0-100,"hair_artifact":0-100,"edge_blending":0-100}}` });
+
+    const res = await callAPI(key, [{ role:'user', content }]);
+    document.getElementById('vpBar').style.width = '100%';
+    document.getElementById('vpPct').textContent = '100%';
+    document.getElementById('vpLabel').textContent = 'Analysis complete';
+
+    const result = parseJSON(res);
+    if (result) {
+      addHistory({ type:'video', name:vidFile.name, result, thumb:null, date:new Date().toISOString() });
+      updateStats(result.verdict);
+      const el = document.getElementById('vid-result');
+      el.innerHTML = buildVideoResult(result, frames);
+      el.style.display = 'block';
+      setTimeout(() => { const b = document.getElementById('mainConfBar'); if(b) b.style.width = Math.min(100,result.confidence||50)+'%'; }, 150);
+    } else {
+      showError('vid-result', 'Could not parse AI response.');
+    }
+  } catch(e) {
+    showError('vid-result', 'Error: '+e.message);
+  }
+  btn.disabled = false;
+  btnText.textContent = 'Analyze Video';
+}
+
+function buildVideoResult(r, frames) {
+  const v = r.verdict||'UNCERTAIN';
+  const conf = Math.min(100,Math.max(0,parseInt(r.confidence)||50));
+  const cfClass = v==='FAKE'?'cf-fake':v==='REAL'?'cf-real':'cf-unsure';
+  const abClass = v==='FAKE'?'ab-fake':v==='REAL'?'ab-real':'ab-unsure';
+  const alertMsg = v==='FAKE'?'🔴 Warning: Video appears to be AI-generated or manipulated!':v==='REAL'?'🟢 Video appears to be authentic.':'🟡 Inconclusive — manual review recommended.';
+  const vLabel = v==='FAKE'?'Likely deepfake video':v==='REAL'?'Likely authentic video':'Uncertain — needs review';
+  const vIcon = v==='FAKE'?'🔴':v==='REAL'?'🟢':'🟡';
+
+  const frameHtml = (r.frame_results||[]).map((fr,i) => {
+    const fv = fr.verdict||'UNCERTAIN';
+    const bc = fv==='FAKE'?'hib-fake':fv==='REAL'?'hib-real':'hib-unsure';
+    const thumb = frames[i] ? `<img class="hi-thumb" src="data:image/jpeg;base64,${frames[i]}" alt="Frame ${i+1}">` : `<div class="hi-thumb" style="display:flex;align-items:center;justify-content:center;font-size:11px;color:var(--text3)">F${i+1}</div>`;
+    return `<div class="history-item">${thumb}<div class="hi-info"><div class="hi-name">Frame ${fr.frame||i+1}</div><div class="hi-meta">Confidence: ${fr.confidence||'?'}%</div></div><span class="hi-badge ${bc}">${fv}</span></div>`;
+  }).join('');
+
+  const sigsHtml = (r.signals||[]).map(s => {
+    const dc = s.type==='bad'?'sd-bad':s.type==='ok'?'sd-ok':'sd-warn';
+    return `<div class="sig-item"><div class="sig-dot ${dc}"></div><div class="sig-text">${s.text}</div></div>`;
+  }).join('');
+
+  return `<div class="card">
+    <div class="alert-banner ${abClass}">${alertMsg}</div>
+    <div class="result-verdict-banner">
+      <div class="verdict-icon" style="font-size:20px">${vIcon}</div>
+      <div><div class="verdict-title">${vLabel}</div><div class="verdict-sub">${frames.length} frames analyzed</div></div>
+    </div>
+    <div class="conf-wrap">
+      <div class="conf-header"><span style="font-size:13px;color:var(--text2)">Overall confidence</span><span class="conf-pct">${conf}%</span></div>
+      <div class="conf-track"><div class="conf-fill ${cfClass}" id="mainConfBar" style="width:0%"></div></div>
+    </div>
+    ${frameHtml ? `<div style="border-bottom:0.5px solid var(--border)"><div style="padding:.75rem 1.5rem .25rem"><div class="section-title">Per-frame results</div></div>${frameHtml}</div>` : ''}
+    ${sigsHtml ? `<div class="signals-wrap"><div class="section-title">Analysis signals</div>${sigsHtml}</div>` : ''}
+    ${r.summary ? `<div class="summary-wrap"><div class="summary-text">${r.summary}</div></div>` : ''}
+    <div class="action-row"><button class="btn-sec" onclick="document.getElementById('vid-upload-section').style.display='block';document.getElementById('vid-preview-section').style.display='none';document.getElementById('vid-result').style.display='none'">New video</button><button class="btn-sec" onclick="switchTab('history')">View history</button></div>
+  </div>`;
+}
+
+function seekVideo(vid, t) {
+  return new Promise(res => {
+    vid.currentTime = t;
+    vid.addEventListener('seeked', res, { once: true });
+  });
+}
+
+// ─── WEBCAM ───────────────────────────────────────────────────
+async function startWebcam() {
+  try {
+    webcamStream = await navigator.mediaDevices.getUserMedia({ video: { width:640, height:480 } });
+    document.getElementById('webcamVideo').srcObject = webcamStream;
+    document.getElementById('startCamBtn').style.display = 'none';
+    document.getElementById('stopCamBtn').style.display = 'flex';
+    document.getElementById('scanBtn').style.display = 'flex';
+    document.getElementById('webcamStatus').textContent = 'Camera active — click Scan Frame to analyze';
+    document.getElementById('webcamStatus').className = 'webcam-status ws-analyzing';
+  } catch(e) {
+    alert('Could not access camera: ' + e.message);
+  }
+}
+
+function stopWebcam() {
+  if (webcamStream) { webcamStream.getTracks().forEach(t => t.stop()); webcamStream = null; }
+  document.getElementById('webcamVideo').srcObject = null;
+  document.getElementById('startCamBtn').style.display = 'flex';
+  document.getElementById('stopCamBtn').style.display = 'none';
+  document.getElementById('scanBtn').style.display = 'none';
+  document.getElementById('webcamStatus').textContent = 'Camera off';
+  document.getElementById('webcamStatus').className = 'webcam-status ws-idle';
+  document.getElementById('webcamIndicator').className = 'webcam-frame-indicator';
+}
+
+async function scanWebcam() {
+  const key = getKey();
+  if (!key) { alert('Please save your API key first.'); return; }
+
+  const vid = document.getElementById('webcamVideo');
+  const canvas = document.getElementById('webcamCanvas');
+  canvas.width = vid.videoWidth || 640;
+  canvas.height = vid.videoHeight || 480;
+  canvas.getContext('2d').drawImage(vid, 0, 0);
+  const frameB64 = canvas.toDataURL('image/jpeg', 0.8).split(',')[1];
+
+  document.getElementById('webcamStatus').textContent = 'Analyzing frame...';
+  document.getElementById('webcamStatus').className = 'webcam-status ws-analyzing';
+  document.getElementById('scanBtn').disabled = true;
+
+  try {
+    const res = await callAPI(key, [{
+      role: 'user',
+      content: [
+        { type: 'image', source: { type: 'base64', media_type: 'image/jpeg', data: frameB64 } },
+        { type: 'text', text: 'Quick deepfake check on this webcam frame. Return JSON only: {"verdict":"FAKE"|"REAL"|"UNCERTAIN","confidence":0-100,"reason":"<one sentence>"}' }
+      ]
+    }]);
+
+    const result = parseJSON(res);
+    const v = result?.verdict || 'UNCERTAIN';
+    const conf = result?.confidence || 50;
+
+    document.getElementById('webcamStatus').textContent = v==='FAKE' ? `🔴 FAKE detected (${conf}% confidence)` : v==='REAL' ? `🟢 REAL — authentic (${conf}%)` : `🟡 Uncertain (${conf}%)`;
+    document.getElementById('webcamStatus').className = 'webcam-status ' + (v==='FAKE'?'ws-fake':v==='REAL'?'ws-real':'ws-analyzing');
+    document.getElementById('webcamIndicator').className = 'webcam-frame-indicator ' + (v==='FAKE'?'wfi-fake':v==='REAL'?'wfi-real':'');
+
+    document.getElementById('webcam-result').innerHTML = `<div style="margin-top:.75rem;padding:.75rem;background:var(--bg2);border-radius:var(--rs);font-size:13px;color:var(--text2);border:0.5px solid var(--border)">${result?.reason || 'Analysis complete.'}</div>`;
+  } catch(e) {
+    document.getElementById('webcamStatus').textContent = 'Error: '+e.message;
+  }
+  document.getElementById('scanBtn').disabled = false;
+}
+
+// ─── HISTORY ─────────────────────────────────────────────────
+function addHistory(item) {
+  history.unshift(item);
+  if (history.length > 50) history = history.slice(0, 50);
+  localStorage.setItem('dg_history', JSON.stringify(history));
+}
+
+function updateStats(verdict) {
+  if (verdict) {
+    stats.total++;
+    if (verdict==='FAKE') stats.fake++;
+    else if (verdict==='REAL') stats.real++;
+    localStorage.setItem('dg_stats', JSON.stringify(stats));
+  }
+  document.getElementById('statTotal').textContent = stats.total;
+  document.getElementById('statFake').textContent = stats.fake;
+  document.getElementById('statReal').textContent = stats.real;
+}
+
+function renderHistory() {
+  const items = document.getElementById('historyItems');
+  if (!history.length) {
+    document.getElementById('historyEmpty').style.display = 'block';
+    document.getElementById('historyList').style.display = 'none';
+    return;
+  }
+  document.getElementById('historyEmpty').style.display = 'none';
+  document.getElementById('historyList').style.display = 'block';
+  document.getElementById('histCount').textContent = history.length + ' scan' + (history.length!==1?'s':'');
+  items.innerHTML = history.map((h,i) => {
+    const v = h.result?.verdict || 'UNCERTAIN';
+    const bc = v==='FAKE'?'hib-fake':v==='REAL'?'hib-real':'hib-unsure';
+    const icon = h.type==='video'?'🎬':'🖼';
+    const thumb = h.thumb ? `<img class="hi-thumb" src="${h.thumb}" alt="">` : `<div class="hi-thumb" style="display:flex;align-items:center;justify-content:center;font-size:18px">${icon}</div>`;
+    const date = new Date(h.date).toLocaleString('en-IN',{month:'short',day:'numeric',hour:'2-digit',minute:'2-digit'});
+    return `<div class="history-item">${thumb}<div class="hi-info"><div class="hi-name">${icon} ${h.name||'Unknown'}</div><div class="hi-meta">${date} · ${h.result?.confidence||'?'}% confidence</div></div><span class="hi-badge ${bc}">${v}</span></div>`;
+  }).join('');
+}
+
+function clearHistory() {
+  if (!confirm('Clear all scan history?')) return;
+  history = [];
+  localStorage.removeItem('dg_history');
+  stats = { total:0, fake:0, real:0 };
+  localStorage.removeItem('dg_stats');
+  updateStats();
+  renderHistory();
+}
+
+// ─── API TEST ─────────────────────────────────────────────────
+async function testApi() {
+  const key = getKey();
+  if (!key) { alert('Please save your API key first.'); return; }
+  const url = document.getElementById('apiTestUrl').value.trim();
+  if (!url) { alert('Please enter an image URL.'); return; }
+
+  const el = document.getElementById('apiTestResult');
+  el.innerHTML = '<div style="font-size:13px;color:var(--text2);padding:.5rem 0">Fetching and analyzing...</div>';
+
+  try {
+    const res = await callAPI(key, [{
+      role:'user',
+      content:[
+        { type:'image', source:{ type:'url', url } },
+        { type:'text', text:'Deepfake check. Return JSON: {"verdict":"FAKE"|"REAL"|"UNCERTAIN","confidence":0-100,"summary":"<2 sentences>","signals":[{"type":"bad"|"ok"|"warn","text":"..."}]}' }
+      ]
+    }]);
+    const result = parseJSON(res);
+    el.innerHTML = `<div class="api-endpoint"><div class="api-body">${JSON.stringify(result, null, 2)}</div></div>`;
+  } catch(e) {
+    el.innerHTML = `<div class="api-endpoint" style="color:var(--red-d)">Error: ${e.message}</div>`;
+  }
+}
+
+function copyApiCode() {
+  const code = `const analyzeImage = async (base64Image, apiKey) => {
+  const res = await fetch('https://api.anthropic.com/v1/messages', {
+    method: 'POST',
+    headers: {
+      'Content-Type': 'application/json',
+      'x-api-key': apiKey,
+      'anthropic-version': '2023-06-01'
+    },
+    body: JSON.stringify({
+      model: 'claude-sonnet-4-20250514',
+      max_tokens: 1000,
+      messages: [{
+        role: 'user',
+        content: [
+          { type: 'image', source: { type: 'base64', media_type: 'image/jpeg', data: base64Image }},
+          { type: 'text', text: 'Is this a deepfake? Return JSON: {verdict, confidence, signals}' }
+        ]
+      }]
+    })
+  });
+  const data = await res.json();
+  return JSON.parse(data.content[0].text);
+};`;
+  navigator.clipboard.writeText(code).then(() => alert('API code copied!'));
+}
+
+// ─── EXPORT ───────────────────────────────────────────────────
+function exportResult() {
+  if (!history.length) return;
+  const h = history[0];
+  const text = `DeepGuard Pro — Scan Report
+===========================
+File: ${h.name}
+Date: ${new Date(h.date).toLocaleString()}
+Verdict: ${h.result?.verdict}
+Confidence: ${h.result?.confidence}%
+Summary: ${h.result?.summary || 'N/A'}
+
+Signals:
+${(h.result?.signals||[]).map(s => `  [${s.type.toUpperCase()}] ${s.text}`).join('\n')}
+
+Generated by DeepGuard Pro`;
+  const a = document.createElement('a');
+  a.href = 'data:text/plain;charset=utf-8,' + encodeURIComponent(text);
+  a.download = 'deepguard-report.txt';
+  a.click();
+}
+
+// ─── API CALL ─────────────────────────────────────────────────
+async function callAPI(key, messages) {
+  const res = await fetch('https://api.anthropic.com/v1/messages', {
+    method: 'POST',
+    headers: {
+      'Content-Type': 'application/json',
+      'x-api-key': key,
+      'anthropic-version': '2023-06-01',
+      'anthropic-dangerous-direct-browser-access': 'true'
+    },
+    body: JSON.stringify({ model: 'claude-sonnet-4-20250514', max_tokens: 1500, messages })
+  });
+  const data = await res.json();
+  if (data.error) throw new Error(data.error.message);
+  return (data.content||[]).map(i=>i.text||'').join('');
+}
+
+function parseJSON(text) {
+  try { return JSON.parse(text.trim()); } catch {}
+  const m = text.match(/\{[\s\S]*\}/);
+  if (m) { try { return JSON.parse(m[0]); } catch {} }
+  return null;
+}
+
+function showError(targetId, msg) {
+  const el = document.getElementById(targetId);
+  el.innerHTML = `<div class="card"><div class="card-pad"><div style="padding:.75rem;background:var(--red-l);color:var(--red-d);border-radius:var(--rs);font-size:14px">${msg}</div><div style="margin-top:.75rem"><button class="btn-sec" style="width:100%" onclick="document.getElementById('${targetId}').style.display='none'">Dismiss</button></div></div></div>`;
+  el.style.display = 'block';
+}
+</script>
+</body>
+</html>
